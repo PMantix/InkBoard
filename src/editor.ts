@@ -214,9 +214,11 @@ export class Editor {
     this.commit(p);
   }
 
-  /** Select every item on the board, as if lassoed, ready to move, resize or delete. */
+  /**
+   * Select every item on the board, as if lassoed, ready to move, resize or delete.
+   * The current tool stays active: drawing outside the selection simply clears it.
+   */
   selectAll() {
-    if (this.tool !== 'select') this.setTool('select');
     this.selection = new Set(this.board.items.map((it) => it.id));
     this.notify();
   }
@@ -476,8 +478,20 @@ export class Editor {
     const eraserEnd = e.pointerType === 'pen' && (e.button === 5 || (e.buttons & 32) !== 0);
     const barrel = e.pointerType === 'pen' && (e.button === 2 || (e.buttons & 2) !== 0);
     const tool: ToolId = eraserEnd ? 'eraser' : barrel ? 'select' : this.tool;
+    if (this.selection.size) {
+      // Any tool can grab an existing selection (e.g. after Ctrl+A) to move or resize it.
+      const grab = this.selectionGestureAt(e);
+      if (grab) {
+        this.gesture = grab;
+        this.schedule();
+        return;
+      }
+      if (tool !== 'select') {
+        this.selection.clear();
+        this.notify();
+      }
+    }
     if (tool === 'pen' || tool === 'highlighter') {
-      this.selection.clear();
       this.gesture = new InkGesture(this, e, { ...(tool === 'highlighter' ? this.settings.highlighter : this.settings.pens[this.settings.activePen]) });
     } else if (tool === 'eraser') {
       this.gesture = new EraseGesture(this, e, eraserEnd ? 'stroke' : this.settings.eraser);
@@ -547,6 +561,11 @@ export class Editor {
   }
 
   private selectGestureFor(e: PointerEvent): Gesture {
+    return this.selectionGestureAt(e) ?? new LassoGesture(this, e);
+  }
+
+  /** Move/resize gesture when the pointer is on the current selection, else null. */
+  private selectionGestureAt(e: PointerEvent): Gesture | null {
     const r = this.selectionBounds();
     if (r) {
       const s = this.screenPoint(e);
@@ -556,7 +575,7 @@ export class Editor {
       const pad = 6 / this.view.zoom;
       if (rectContains({ x: r.x - pad, y: r.y - pad, w: r.w + pad * 2, h: r.h + pad * 2 }, w)) return new TransformGesture(this, e, 'move');
     }
-    return new LassoGesture(this, e);
+    return null;
   }
 
   /** Topmost item under a world point. */
