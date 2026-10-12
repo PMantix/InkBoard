@@ -1,7 +1,7 @@
 {
   "name": "inkboard",
   "productName": "Inkboard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A local, pen-first infinite whiteboard for Windows and macOS.",
   "private": true,
   "type": "module",
