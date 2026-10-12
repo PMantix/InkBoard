@@ -23,6 +23,7 @@ import { emitStroke, Path2DSink } from './ink/geometry';
 import { clampPressure, decimate, InkPipeline, pressureFactor } from './ink/pipeline';
 import {
   emptyBoard,
+  inkOpacity,
   itemBounds,
   newId,
   shapeOutline,
@@ -45,6 +46,8 @@ export interface Settings {
   highlighter: InkStyle;
   eraser: EraserMode;
   autoShapes: boolean;
+  /** User-added colours, shared by all pens and the highlighter. */
+  customColors: string[];
 }
 
 export const defaultSettings = (): Settings => ({
@@ -57,6 +60,7 @@ export const defaultSettings = (): Settings => ({
   highlighter: { kind: 'highlighter', color: '#FFF100', width: 22 },
   eraser: 'stroke',
   autoShapes: true,
+  customColors: [],
 });
 
 const HOLD_MS = 500;
@@ -689,7 +693,8 @@ class InkGesture implements Gesture {
 
   private get full() {
     // Translucent/blended ink and the non-freehand modes redraw the whole wet stroke each frame.
-    return this.style.kind === 'highlighter' || this.mode !== 'ink' || this.ed.view.zoom < 0.25;
+    // (Incremental drawing would double the alpha wherever new pieces overlap old ones.)
+    return this.style.kind === 'highlighter' || inkOpacity(this.style) < 1 || this.mode !== 'ink' || this.ed.view.zoom < 0.25;
   }
 
   private armHold() {
@@ -861,7 +866,9 @@ function fillStroke(ctx: CanvasRenderingContext2D, pts: readonly InkPoint[], sty
   const sink = new Path2DSink();
   emitStroke(sink, pts, style, from);
   ctx.fillStyle = style.color;
+  ctx.globalAlpha = inkOpacity(style);
   ctx.fill(sink.path, 'nonzero');
+  ctx.globalAlpha = 1;
 }
 
 class EraseGesture implements Gesture {

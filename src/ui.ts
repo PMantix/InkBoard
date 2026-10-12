@@ -1,4 +1,5 @@
 // Floating toolbar, popovers and zoom control.
+import { colorWheel } from './colorPicker';
 import type { Editor, ToolId } from './editor';
 import { PAPER_COLORS, type GridKind, type InkStyle } from './model';
 
@@ -49,6 +50,7 @@ export class Toolbar {
   private pop = document.getElementById('popover')!;
   private zoomEl = document.getElementById('zoom')!;
   private popFor: string | null = null;
+  private wheelOpen = false;
 
   constructor(private ed: Editor, private actions: { importFiles(): void; saveSettings(): void }) {
     ed.onChange(() => this.render());
@@ -150,6 +152,7 @@ export class Toolbar {
   private togglePop(id: string, anchor: HTMLElement, build: () => void) {
     if (this.popFor === id) return this.closePop();
     this.popFor = id;
+    this.wheelOpen = false;
     this.pop.replaceChildren();
     build();
     this.pop.hidden = false;
@@ -175,25 +178,100 @@ export class Toolbar {
     this.pop.appendChild(h);
   }
 
+  private swatch(color: string, selected: boolean, onPick: () => void) {
+    const b = document.createElement('button');
+    b.className = 'swatch';
+    b.style.background = color;
+    b.title = color;
+    b.setAttribute('aria-label', color);
+    b.setAttribute('aria-pressed', String(selected));
+    b.addEventListener('click', onPick);
+    return b;
+  }
+
   private stylePop(style: InkStyle, colors: string[], widths: number[]) {
+    const settings = this.ed.settings;
+    const rebuild = () => this.refreshPop(() => this.stylePop(style, colors, widths));
+    const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
+    const choose = (c: string) => {
+      style.color = c;
+      this.actions.saveSettings();
+      this.render();
+      rebuild();
+    };
+
     this.heading('Colour');
     const sw = document.createElement('div');
     sw.className = 'swatches';
-    for (const c of colors) {
-      const b = document.createElement('button');
-      b.className = 'swatch';
-      b.style.background = c;
-      b.title = c;
-      b.setAttribute('aria-pressed', String(style.color.toLowerCase() === c.toLowerCase()));
-      b.addEventListener('click', () => {
-        style.color = c;
-        this.actions.saveSettings();
-        this.render();
-        this.refreshPop(() => this.stylePop(style, colors, widths));
-      });
-      sw.appendChild(b);
-    }
+    for (const c of colors) sw.appendChild(this.swatch(c, same(style.color, c), () => choose(c)));
     this.pop.appendChild(sw);
+
+    this.heading('Custom');
+    const custom = document.createElement('div');
+    custom.className = 'swatches';
+    for (const c of settings.customColors) {
+      const b = this.swatch(c, same(style.color, c), () => choose(c));
+      b.title = `${c} (right-click to remove)`;
+      b.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        settings.customColors = settings.customColors.filter((x) => !same(x, c));
+        this.actions.saveSettings();
+        rebuild();
+      });
+      custom.appendChild(b);
+    }
+    const add = document.createElement('button');
+    add.className = 'swatch add-swatch';
+    add.title = 'Pick any colour';
+    add.setAttribute('aria-label', 'Pick any colour');
+    add.setAttribute('aria-pressed', String(this.wheelOpen));
+    add.textContent = '+';
+    add.addEventListener('click', () => {
+      this.wheelOpen = !this.wheelOpen;
+      rebuild();
+    });
+    custom.appendChild(add);
+    this.pop.appendChild(custom);
+
+    if (this.wheelOpen) {
+      let picked = style.color;
+      const wheel = colorWheel(style.color, (hex) => (picked = hex));
+      const use = document.createElement('button');
+      use.className = 'menu-item wheel-add';
+      use.textContent = 'Add colour';
+      use.addEventListener('click', () => {
+        if (!settings.customColors.some((c) => same(c, picked))) settings.customColors = [...settings.customColors, picked].slice(-12);
+        this.wheelOpen = false;
+        choose(picked);
+      });
+      wheel.appendChild(use);
+      this.pop.appendChild(wheel);
+    }
+
+    this.heading('Opacity');
+    const op = document.createElement('div');
+    op.className = 'opacity';
+    const range = document.createElement('input');
+    range.type = 'range';
+    range.min = '10';
+    range.max = '100';
+    range.step = '5';
+    range.value = String(Math.round((style.opacity ?? 1) * 100));
+    range.setAttribute('aria-label', 'Opacity');
+    const label = document.createElement('span');
+    const paint = () => {
+      label.textContent = `${range.value}%`;
+      range.style.setProperty('--ink', style.color);
+    };
+    range.addEventListener('input', () => {
+      style.opacity = Number(range.value) / 100;
+      paint();
+    });
+    range.addEventListener('change', () => this.actions.saveSettings());
+    paint();
+    op.append(range, label);
+    this.pop.appendChild(op);
+
     this.heading('Thickness');
     const ws = document.createElement('div');
     ws.className = 'widths';
@@ -210,7 +288,7 @@ export class Toolbar {
       b.addEventListener('click', () => {
         style.width = w;
         this.actions.saveSettings();
-        this.refreshPop(() => this.stylePop(style, colors, widths));
+        rebuild();
       });
       ws.appendChild(b);
     }
@@ -273,6 +351,9 @@ export class Toolbar {
   private refreshPop(build: () => void) {
     this.pop.replaceChildren();
     build();
+    // Content height can change (e.g. the colour wheel opening), so re-anchor.
+    const anchor = this.popFor ? this.bar.querySelector<HTMLElement>(`[data-id="${this.popFor}"]`) : null;
+    if (anchor) this.place(anchor);
   }
 }
 

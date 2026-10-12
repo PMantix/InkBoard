@@ -277,6 +277,7 @@ window.addEventListener('keydown', (e) => {
 // Single-key tool shortcuts.
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if ((e.target as HTMLElement)?.closest?.('input, textarea, [contenteditable]')) return;
   const k = e.key.toLowerCase();
   if (k === 'p') editor.setTool('pen');
   else if (k === 'h') editor.setTool('highlighter');

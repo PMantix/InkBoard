@@ -316,6 +316,130 @@ body {
   box-shadow: var(--chrome-shadow);
 }
 
+/* ---------- custom colours, wheel, opacity ---------- */
+
+.add-swatch {
+  display: grid;
+  place-items: center;
+  background: conic-gradient(#f33, #fd3, #3d5, #3cf, #36f, #c3f, #f33) !important;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.wheel {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid var(--chrome-border);
+  border-radius: 12px;
+}
+
+.wheel-disc {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.wheel-disc canvas {
+  display: block;
+  border-radius: 50%;
+}
+
+.wheel-marker {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.wheel-bright,
+.opacity input {
+  height: 10px;
+  border-radius: 5px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.wheel-bright {
+  width: 168px;
+}
+
+.wheel-bright::-webkit-slider-thumb,
+.opacity input::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.wheel-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.wheel-preview {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  outline: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.wheel-hex {
+  width: 96px;
+  padding: 6px 8px;
+  border: 1px solid var(--chrome-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: 13px ui-monospace, Consolas, monospace;
+  user-select: text;
+}
+
+.wheel-add {
+  justify-content: center;
+  background: var(--active);
+  font-weight: 600;
+}
+
+.opacity {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.opacity input {
+  flex: 1;
+  /* Checkerboard under a transparent → ink gradient shows what the opacity means. */
+  background:
+    linear-gradient(to right, transparent, var(--ink, #000)),
+    repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 0 0 / 10px 10px;
+}
+
+.opacity span {
+  min-width: 38px;
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
 @media (max-width: 720px) {
   #toolbar {
     bottom: 10px;

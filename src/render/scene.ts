@@ -2,7 +2,7 @@
 // Used for the live canvas and for PNG export.
 import { rectsIntersect, type Rect } from '../geom';
 import { strokeHairline, strokePath } from '../ink/geometry';
-import { itemBounds, shapeOutline, type Background, type Item } from '../model';
+import { inkOpacity, itemBounds, shapeOutline, type Background, type Item } from '../model';
 
 const GRID_INK = 'rgba(64,64,64,0.188)';
 const GRID_INK_DARK = 'rgba(255,255,255,0.22)';
@@ -133,6 +133,8 @@ export function drawItem(ctx: CanvasRenderingContext2D, it: Item, o: Pick<DrawOp
     case 'stroke': {
       ctx.save();
       if (it.style.kind === 'highlighter') ctx.globalCompositeOperation = 'darken';
+      // The outline is one union path, so a single alpha fill never darkens self-overlaps.
+      ctx.globalAlpha = inkOpacity(it.style);
       if (it.style.width * scale < 1.5) {
         ctx.strokeStyle = it.style.color;
         ctx.lineWidth = Math.max(it.style.width, 0.7 / scale);

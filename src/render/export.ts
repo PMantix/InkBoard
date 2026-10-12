@@ -1,7 +1,7 @@
 // PNG / SVG / PDF export of the whole board (or a selection).
 import { unionRect, type Rect } from '../geom';
 import { emitStroke, SvgSink } from '../ink/geometry';
-import { itemBounds, shapeOutline, type Board, type Item } from '../model';
+import { inkOpacity, itemBounds, shapeOutline, type Board, type Item } from '../model';
 import { drawScene, imageFor, isDarkPaper } from './scene';
 
 const MAX_PNG_SIDE = 16200;
@@ -65,7 +65,9 @@ export function exportSvg(board: Board, items: readonly Item[] = board.items): {
       const sink = new SvgSink();
       emitStroke(sink, it.points, it.style);
       const blend = it.style.kind === 'highlighter' ? ' style="mix-blend-mode:darken"' : '';
-      parts.push(`<path d="${sink}" fill="${it.style.color}" fill-rule="nonzero"${blend}/>`);
+      const op = inkOpacity(it.style);
+      const alpha = op < 1 ? ` fill-opacity="${op}"` : '';
+      parts.push(`<path d="${sink}" fill="${it.style.color}"${alpha} fill-rule="nonzero"${blend}/>`);
     } else if (it.type === 'shape') {
       const pts = shapeOutline(it);
       const d = pts.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join('') + (it.closed ? 'Z' : '');

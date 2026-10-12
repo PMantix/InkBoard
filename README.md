@@ -59,7 +59,7 @@ npm run dist:mac   # macOS .dmg in release/ (must run on a Mac)
 
 | | |
 |---|---|
-| Pens | Three pens and a highlighter. Click the active pen again to change its colour or thickness |
+| Pens | Three pens and a highlighter. Click the active pen again to change its colour, opacity or thickness. **+** opens a colour wheel (with a hex box) and saves picks to a Custom row shared by all pens; right-click a custom colour to remove it |
 | Ink to shape | The shapes button turns auto-recognition on or off for closed strokes (circle, ellipse, triangle, square, rectangle, diamond, pentagon, hexagon) |
 | Draw and hold | Pause for half a second at the end of a stroke. A straight stroke becomes a ruler-straight line; a closed one becomes a shape that you can keep dragging to resize and rotate |
 | Straight line | Hold Shift while drawing. Snaps to horizontal, vertical, 45° and nearby stroke ends |

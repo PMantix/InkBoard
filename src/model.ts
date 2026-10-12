@@ -14,7 +14,11 @@ export interface InkStyle {
   /** Nominal stroke diameter in world units at pressure 0.5. */
   width: number;
   kind: PenKind;
+  /** 0.1–1; omitted means fully opaque (older files). */
+  opacity?: number;
 }
+
+export const inkOpacity = (s: InkStyle) => Math.min(1, Math.max(0.05, s.opacity ?? 1));
 
 export interface StrokeItem {
   id: string;
