@@ -30,6 +30,7 @@ function createWindow(openPath) {
     minHeight: 480,
     backgroundColor: '#f6f6f4',
     title: 'Inkboard',
+    icon: path.join(here, '..', 'build', 'icon.png'),
     webPreferences: {
       preload: path.join(here, 'preload.cjs'),
       contextIsolation: true,
@@ -65,6 +66,7 @@ async function openInWindow(win, filePath) {
   }
 }
 
+// Menu items for editing keys use registerAccelerator:false; the renderer handles the keys.
 const send = (cmd) => () => BrowserWindow.getFocusedWindow()?.webContents.send('menu', cmd);
 
 function buildMenu() {
@@ -96,14 +98,14 @@ function buildMenu() {
     {
       label: 'Edit',
       submenu: [
-        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', click: send('undo') },
-        { label: 'Redo', accelerator: isMac ? 'Cmd+Shift+Z' : 'Ctrl+Y', click: send('redo') },
+        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', registerAccelerator: false, click: send('undo') },
+        { label: 'Redo', accelerator: isMac ? 'Cmd+Shift+Z' : 'Ctrl+Y', registerAccelerator: false, click: send('redo') },
         { type: 'separator' },
         { role: 'cut' },
         { role: 'copy' },
         { role: 'paste' },
-        { label: 'Delete Selection', accelerator: 'Delete', click: send('delete') },
-        { label: 'Select All', accelerator: 'CmdOrCtrl+A', click: send('selectAll') },
+        { label: 'Delete Selection', accelerator: 'Delete', registerAccelerator: false, click: send('delete') },
+        { label: 'Select All', accelerator: 'CmdOrCtrl+A', registerAccelerator: false, click: send('selectAll') },
       ],
     },
     {

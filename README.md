@@ -5,14 +5,54 @@ replacement for Microsoft Whiteboard: the ink feel, ink-to-shape and line tools
 copy Whiteboard's behaviour, but every line of code is new. Boards are plain
 `.inkboard` files on your disk. There's no account and nothing goes to the cloud.
 
-## Run
+## Install
+
+Download the latest installer from the
+**[Releases page](https://github.com/PMantix/InkBoard/releases/latest)**.
+
+### macOS
+
+1. Download **`Inkboard-<version>-mac.dmg`**. It runs natively on Apple Silicon and Intel.
+2. Open the `.dmg` and drag **Inkboard** into **Applications**.
+3. The first time only: open Inkboard from Applications. macOS will say it can't
+   check the app for malicious software, because it isn't signed with a paid Apple
+   developer certificate. Click **Done**, then go to **System Settings › Privacy &
+   Security**, scroll down, and click **Open Anyway** next to Inkboard. After that
+   it opens normally from Launchpad, Spotlight or the Dock. Right-click its Dock
+   icon › **Options › Keep in Dock** to pin it.
+
+   If macOS says the app "is damaged", run this once in Terminal and try again:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/Inkboard.app
+   ```
+
+### Windows
+
+1. Download **`Inkboard-Setup-<version>.exe`** and run it.
+2. If you see "Windows protected your PC", click **More info › Run anyway**
+   (again because the app isn't code-signed).
+3. The installer adds Inkboard to the **Start menu** and **desktop**, and makes
+   `.inkboard` files open in Inkboard on double-click. To remove it, use
+   **Settings › Apps**.
+
+### Making a new release
+
+Push a version tag and GitHub Actions builds both installers and attaches them
+to a release:
+
+```bash
+npm version patch        # bumps package.json and creates a tag such as v0.1.1
+git push --follow-tags
+```
+
+## Build from source
 
 ```bash
 npm install
 npm start          # build and launch
 npm run dev        # hot-reload development (Vite + Electron)
-npm run dist:win   # Windows installer and portable .exe in release/
-npm run dist:mac   # macOS .dmg (run this on a Mac)
+npm run dist:win   # Windows installer in release/
+npm run dist:mac   # macOS .dmg in release/ (must run on a Mac)
 ```
 
 ## Using it
@@ -24,12 +64,14 @@ npm run dist:mac   # macOS .dmg (run this on a Mac)
 | Draw and hold | Pause for half a second at the end of a stroke. A straight stroke becomes a ruler-straight line; a closed one becomes a shape that you can keep dragging to resize and rotate |
 | Straight line | Hold Shift while drawing. Snaps to horizontal, vertical, 45° and nearby stroke ends |
 | Eraser | Click the eraser again to switch between the stroke and point erasers. The pen's eraser end works too |
-| Select | Lasso, or tap a stroke. Drag to move, drag the corner handle to resize, press Delete to remove. The pen's barrel button lassos |
+| Select | Lasso, or tap a stroke; Ctrl+A selects everything. Drag to move, drag the corner handle to resize, press Delete to remove. The pen's barrel button lassos |
 | Navigate | Scroll or drag with two fingers to pan; Ctrl+scroll or pinch to zoom. Space+drag, middle-drag and right-drag also pan. When a pen is in use, touch only pans |
 | Paste | Images and Inkboard selections. From Microsoft Whiteboard (Ctrl+A, Ctrl+C there, Ctrl+V here), images import today; ink import is waiting on decoding Whiteboard's binary point format |
 | Export | File › Export as PNG, SVG or PDF (the whole board, or just the selection) |
 
-Shortcuts: P pen, H highlighter, E eraser, V select, Ctrl+Z / Ctrl+Y undo/redo, Ctrl+0 fit.
+Shortcuts: P pen, H highlighter, E eraser, V select, Ctrl+A select all, Ctrl+Z / Ctrl+Y undo/redo, Ctrl+0 fit. (On a Mac, use Cmd.)
+
+Undo steps back one action at a time. When ink becomes a shape (auto-shapes or draw-and-hold), the first Ctrl+Z turns the shape back into the ink you actually drew; a second one removes the stroke.
 
 ## Where the behaviour comes from
 

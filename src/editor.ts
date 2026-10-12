@@ -214,11 +214,11 @@ export class Editor {
     this.commit(p);
   }
 
+  /** Select every item on the board, as if lassoed, ready to move, resize or delete. */
   selectAll() {
-    this.setTool('select');
+    if (this.tool !== 'select') this.setTool('select');
     this.selection = new Set(this.board.items.map((it) => it.id));
-    this.overlayDirty = true;
-    this.schedule();
+    this.notify();
   }
 
   selectedItems(): Item[] {
@@ -653,6 +653,8 @@ class InkGesture implements Gesture {
   private holdWorld: Vec = { x: 0, y: 0 };
   private preview: InkPoint[] = [];
   private needsFull = false;
+  /** The ink as drawn when draw-and-hold converted it, so undo can restore it. */
+  private rawAtHold: InkPoint[] | null = null;
 
   constructor(private ed: Editor, e: PointerEvent, private style: InkStyle) {
     this.t0 = e.timeStamp;
@@ -697,12 +699,14 @@ class InkGesture implements Gesture {
     if (this.mode !== 'ink') return;
     const pts = [...this.pipeline.points, this.lastWorld];
     if (isStraight(pts)) {
+      this.rawAtHold = decimate(pts, 0.05 / this.ed.view.zoom);
       this.enterLine(true);
       return;
     }
     if (this.style.kind !== 'pen') return;
     const rec = recognize(pts, this.style.width, true);
     if (!rec || rec.kind === 'line') return;
+    this.rawAtHold = decimate(pts, 0.05 / this.ed.view.zoom);
     this.mode = 'shape';
     this.shapeBase = rec.points;
     const b = bounds(rec.points);
@@ -782,6 +786,8 @@ class InkGesture implements Gesture {
     clearTimeout(this.holdTimer);
     const ed = this.ed;
     let points: InkPoint[];
+    // Ink as the user drew it, when a shape/line replaced it (undo steps back to this).
+    let drawn: InkPoint[] | null = null;
     if (this.mode === 'ink') {
       if (e.pointerType !== 'pen' || e.pressure > 0) this.pipeline.push(ed.worldPoint(e, this.t0));
       this.pipeline.finish();
@@ -789,19 +795,35 @@ class InkGesture implements Gesture {
       if (points.length === 1) points = [points[0], { ...points[0], x: points[0].x + 0.01 }];
       if (ed.settings.autoShapes && this.style.kind === 'pen') {
         const rec = recognize(points, this.style.width, false);
-        if (rec) points = rec.points;
+        if (rec) {
+          drawn = points;
+          points = rec.points;
+        }
       }
     } else {
       points = this.preview;
+      drawn = this.rawAtHold; // null for Shift-lines, which are deliberate from the start
     }
     this.clearWet();
     if (points.length < 2) return;
     const item: StrokeItem = { id: newId(), type: 'stroke', style: this.style, points };
-    const p = emptyPatch();
-    p.added.push(item);
     // Paint immediately so the wet → dry hand-off has no blank frame.
     ed.paintCommitted(item);
-    ed.commit(p);
+    if (drawn && drawn.length >= 2) {
+      // Two history steps, like Whiteboard: the ink as drawn, then its beautification.
+      // The first Ctrl+Z turns the shape back into the original ink.
+      const original: StrokeItem = { ...item, points: drawn };
+      const add = emptyPatch();
+      add.added.push(original);
+      ed.commit(add);
+      const beautify = emptyPatch();
+      beautify.changed.push({ before: original, after: item });
+      ed.commit(beautify);
+    } else {
+      const p = emptyPatch();
+      p.added.push(item);
+      ed.commit(p);
+    }
   }
 
   cancel() {

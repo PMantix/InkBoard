@@ -12,38 +12,71 @@
     "start": "npm run build && electron .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "dist:win": "npm run build && electron-builder --win",
-    "dist:mac": "npm run build && electron-builder --mac"
+    "dist:win": "npm run build && electron-builder --win --publish never -c.electronDist=node_modules/electron/dist",
+    "dist:mac": "npm run build && electron-builder --mac --publish never"
   },
   "build": {
-    "appId": "dev.local.inkboard",
+    "appId": "dev.pmantix.inkboard",
     "productName": "Inkboard",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
       "dist/**",
       "electron/**",
-      "package.json"
+      "package.json",
+      "build/icon.png"
     ],
+    "icon": "build/icon.png",
+    "artifactName": "Inkboard-${version}-${os}-${arch}.${ext}",
     "fileAssociations": [
       {
         "ext": "inkboard",
         "name": "Inkboard board",
-        "role": "Editor"
+        "role": "Editor",
+        "icon": "build/icon.png"
       }
     ],
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Inkboard",
+      "artifactName": "Inkboard-Setup-${version}.${ext}"
     },
     "mac": {
       "target": [
-        "dmg"
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
       ],
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "identity": "-"
+    },
+    "dmg": {
+      "artifactName": "Inkboard-${version}-mac.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "PMantix",
+      "repo": "InkBoard",
+      "releaseType": "release"
     }
   },
   "devDependencies": {
@@ -56,5 +89,6 @@
     "vite": "^8.3.4",
     "vitest": "^5.0.3",
     "wait-on": "^9.5.1"
-  }
+  },
+  "author": "Phillip Aquino"
 }

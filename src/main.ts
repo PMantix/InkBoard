@@ -254,20 +254,25 @@ bridge?.onMenu((cmd) => {
 
 bridge?.onLoaded((doc) => loadText(doc.text));
 
-// Browser fallback (vite dev without Electron): keyboard undo/redo.
-if (!bridge) {
-  window.addEventListener('keydown', (e) => {
-    const mod = e.ctrlKey || e.metaKey;
-    if (mod && e.key.toLowerCase() === 'z') {
-      e.preventDefault();
-      if (e.shiftKey) editor.history.redo();
-      else editor.history.undo();
-    } else if (mod && e.key.toLowerCase() === 'y') {
-      e.preventDefault();
-      editor.history.redo();
-    }
-  });
-}
+// Editing shortcuts are owned by the renderer (the menu shows them but doesn't register
+// them), so each keypress acts exactly once in Electron and in a plain browser.
+window.addEventListener('keydown', (e) => {
+  if ((e.target as HTMLElement)?.closest?.('input, textarea, [contenteditable]')) return;
+  const mod = e.ctrlKey || e.metaKey;
+  if (!mod) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z') {
+    e.preventDefault();
+    if (e.shiftKey) editor.history.redo();
+    else editor.history.undo();
+  } else if (k === 'y') {
+    e.preventDefault();
+    editor.history.redo();
+  } else if (k === 'a') {
+    e.preventDefault();
+    editor.selectAll();
+  }
+});
 
 // Single-key tool shortcuts.
 window.addEventListener('keydown', (e) => {

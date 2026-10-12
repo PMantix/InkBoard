@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f7cf0"/>
+      <stop offset="1" stop-color="#2a4fc4"/>
+    </linearGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef1f7"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#0b1f5c" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <!-- macOS-style squircle tile with margin -->
+  <rect x="100" y="100" width="824" height="824" rx="190" fill="url(#bg)"/>
+  <!-- whiteboard page -->
+  <rect x="222" y="232" width="580" height="540" rx="56" fill="url(#page)" filter="url(#shadow)"/>
+  <!-- dot grid -->
+  <g fill="#c9cfdc">
+    <circle cx="300" cy="310" r="7"/><circle cx="380" cy="310" r="7"/><circle cx="460" cy="310" r="7"/><circle cx="540" cy="310" r="7"/><circle cx="620" cy="310" r="7"/><circle cx="700" cy="310" r="7"/>
+    <circle cx="300" cy="694" r="7"/><circle cx="380" cy="694" r="7"/><circle cx="460" cy="694" r="7"/><circle cx="540" cy="694" r="7"/><circle cx="620" cy="694" r="7"/><circle cx="700" cy="694" r="7"/>
+  </g>
+  <!-- hand-drawn circle (recognized shape) -->
+  <path d="M640 430 a92 92 0 1 1 -0.1 0" fill="none" stroke="#e71224" stroke-width="22" stroke-linecap="round"/>
+  <!-- pressure ink swoosh: tapered filled shape -->
+  <path d="M276 600 C 330 520, 380 470, 420 500 C 455 528, 430 600, 470 612 C 510 624, 540 560, 590 548
+           C 596 547, 600 553, 594 558 C 548 580, 520 650, 466 640 C 414 630, 438 556, 414 534
+           C 388 512, 340 560, 290 612 C 282 620, 270 610, 276 600 Z" fill="#1d2433"/>
+  <!-- highlighter stroke -->
+  <rect x="300" y="384" width="190" height="34" rx="6" fill="#fff100" opacity="0.85" transform="rotate(-6 395 401)"/>
+</svg>
